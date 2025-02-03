@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from tkinter import ttk
-from PIL import Image
+from PIL import Image, ImageTk
 import os
 
 class ImageCompressorApp:
@@ -22,18 +22,44 @@ class ImageCompressorApp:
         self.quality_entry.pack(pady=5)
         self.quality_entry.insert(0, "85")
 
+        self.preview_button = tk.Button(root, text="Preview Images", command=self.preview_images)
+        self.preview_button.pack(pady=5)
+
         self.compress_button = tk.Button(root, text="Compress Images", command=self.compress_images)
         self.compress_button.pack(pady=20)
+
+        self.reset_button = tk.Button(root, text="Reset", command=self.reset_images)
+        self.reset_button.pack(pady=5)
 
         self.progress = ttk.Progressbar(root, orient="horizontal", length=300, mode="determinate")
         self.progress.pack(pady=10)
 
         self.image_paths = []
+        self.preview_window = None
 
     def select_images(self):
         self.image_paths = filedialog.askopenfilenames(filetypes=[("Image files", "*.jpg *.jpeg *.png *.bmp *.gif")])
         if self.image_paths:
             self.label.config(text=f"Selected: {len(self.image_paths)} images")
+
+    def preview_images(self):
+        if not self.image_paths:
+            messagebox.showerror("Error", "No images selected")
+            return
+
+        if self.preview_window:
+            self.preview_window.destroy()
+
+        self.preview_window = tk.Toplevel(self.root)
+        self.preview_window.title("Image Previews")
+
+        for image_path in self.image_paths:
+            img = Image.open(image_path)
+            img.thumbnail((200, 200))
+            img_tk = ImageTk.PhotoImage(img)
+            label = tk.Label(self.preview_window, image=img_tk)
+            label.image = img_tk
+            label.pack()
 
     def compress_images(self):
         if not self.image_paths:
@@ -69,6 +95,12 @@ class ImageCompressorApp:
                 return
 
         messagebox.showinfo("Success", "All images compressed successfully")
+
+    def reset_images(self):
+        self.image_paths = []
+        self.label.config(text="Select images to compress")
+        if self.preview_window:
+            self.preview_window.destroy()
 
 if __name__ == "__main__":
     root = tk.Tk()
